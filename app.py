@@ -56,8 +56,6 @@ def login():
 # Dashboard
 @app.route("/")
 def index():
-    if not session.get("user"):
-        return redirect("/login")
     return render_template("index.html")
 
 # API data
