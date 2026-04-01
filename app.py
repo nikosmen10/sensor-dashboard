@@ -1,15 +1,14 @@
-from flask import Flask, render_template, jsonify, request, redirect, session, send_file
+from flask import Flask, render_template, jsonify, send_file
 import csv
 import time
 import random
 
 app = Flask(__name__)
-app.secret_key = "secret123"
 
 DATA_FILE = "data.csv"
 THRESHOLD = 80
 
-# Create CSV file
+# Create CSV file if not exists
 def init_file():
     try:
         with open(DATA_FILE, "x", newline="") as f:
@@ -20,7 +19,7 @@ def init_file():
 
 init_file()
 
-# Generate multi-sensor data
+# Generate sensor data (demo or replace with real sensors)
 def generate_data():
     sensors = {
         "temperature": round(random.uniform(20, 100), 2),
@@ -32,7 +31,12 @@ def generate_data():
 
     with open(DATA_FILE, "a", newline="") as f:
         writer = csv.writer(f)
-        writer.writerow([timestamp, sensors["temperature"], sensors["pressure"], sensors["vibration"]])
+        writer.writerow([
+            timestamp,
+            sensors["temperature"],
+            sensors["pressure"],
+            sensors["vibration"]
+        ])
 
     alert = sensors["temperature"] > THRESHOLD
 
@@ -42,28 +46,17 @@ def generate_data():
         "alert": alert
     }
 
-# Login
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    if request.method == "POST":
-        if request.form["username"] == "admin" and request.form["password"] == "admin":
-            session["user"] = True
-            return redirect("/")
-        return "Wrong credentials"
-
-    return render_template("login.html")
-
-# Dashboard
+# MAIN PAGE (NO LOGIN)
 @app.route("/")
 def index():
     return render_template("index.html")
 
-# API data
+# DATA API
 @app.route("/data")
 def data():
     return jsonify(generate_data())
 
-# Export CSV
+# EXPORT CSV
 @app.route("/export")
 def export():
     return send_file(DATA_FILE, as_attachment=True)
